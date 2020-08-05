@@ -181,6 +181,9 @@ class MCTSPlayer(object):
 
     def reset_player(self):
         self.mcts.update_with_move(-1)
+        
+    def notifyOppAction(self, move):
+        self.mcts.update_with_move(move)
 
     def get_action(self, board, temp=1e-3, return_prob=0):
         sensible_moves = board.availables
@@ -192,9 +195,13 @@ class MCTSPlayer(object):
             if self._is_selfplay:
                 # add Dirichlet Noise for exploration (needed for
                 # self-play training)
+                
+                #p= probs if len(board.states)<=6 else 0.75*probs + 0.25*np.random.dirichlet(0.3*np.ones(len(probs)))
+                #move = np.random.choice(acts, p=p)
+                
                 move = np.random.choice(
                     acts,
-                    p=0.75*probs + 0.25*np.random.dirichlet(0.3*np.ones(len(probs)))
+                    p=0.75*probs + 0.25*np.random.dirichlet(0.3*np.ones(len(probs)))    #可以在playout中加入dirichlet，而不是这里
                 )
                 # update the root node and reuse the search tree
                 self.mcts.update_with_move(move)
@@ -203,7 +210,8 @@ class MCTSPlayer(object):
                 # to choosing the move with the highest prob
                 move = np.random.choice(acts, p=probs)
                 # reset the root node
-                self.mcts.update_with_move(-1)
+                #self.mcts.update_with_move(-1)  #这里为什么不是self.mcts.update_with_move(move)
+                self.mcts.update_with_move(move)
 #                location = board.move_to_location(move)
 #                print("AI move: %d,%d\n" % (location[0], location[1]))
 

@@ -28,6 +28,9 @@ class Human(object):
 
     def set_player_ind(self, p):
         self.player = p
+        
+    def notifyOppAction(self, move):
+        pass
 
     def get_action(self, board):
         try:

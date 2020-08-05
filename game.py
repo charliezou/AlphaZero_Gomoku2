@@ -176,6 +176,9 @@ class Game(object):
             player_in_turn = players[current_player]
             move = player_in_turn.get_action(self.board)
             self.board.do_move(move)
+            #通知对手
+            players[1 if current_player==2 else 2].notifyOppAction(move)
+            
             if is_shown:
                 self.graphic(self.board, player1.player, player2.player)
             end, winner = self.board.game_end()

@@ -47,13 +47,15 @@ class TreeNode(object):
             if action not in self._children:
                 self._children[action] = TreeNode(self, prob)
 
-    def select(self, c_puct):
+    def select(self, c_puct):       
         """Select action among children that gives maximum action value Q
         plus bonus u(P).
         Return: A tuple of (action, next_node)
+        选择策略1：根据Q+u；#选择策略2：根据_n_visits选择
+        self_play，根据随机策略；paly，取最大策略
         """
         return max(self._children.items(),
-                   key=lambda act_node: act_node[1].get_value(c_puct))
+                   key=lambda act_node: act_node[1].get_value(c_puct))      
 
     def update(self, leaf_value):
         """Update node values from leaf evaluation.
@@ -134,6 +136,7 @@ class MCTS(object):
         leaf_value = self._evaluate_rollout(state)
         # Update value and visit count of nodes in this traversal.
         node.update_recursive(-leaf_value)
+                
 
     def _evaluate_rollout(self, state, limit=1000):
         """Use the rollout policy to play until the end of the game,
@@ -192,12 +195,16 @@ class MCTSPlayer(object):
 
     def reset_player(self):
         self.mcts.update_with_move(-1)
+        
+    def notifyOppAction(self, move):
+        self.mcts.update_with_move(move)
 
     def get_action(self, board):
         sensible_moves = board.availables
         if len(sensible_moves) > 0:
             move = self.mcts.get_move(board)
-            self.mcts.update_with_move(-1)
+            self.mcts.update_with_move(-1)  #这里为什么不是self.mcts.update_with_move(move)
+            #self.mcts.update_with_move(move)
             return move
         else:
             print("WARNING: the board is full")
