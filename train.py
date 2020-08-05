@@ -16,14 +16,15 @@ from mcts_alphaZero import MCTSPlayer
 # from policy_value_net_pytorch import PolicyValueNet  # Pytorch
 # from policy_value_net_tensorflow import PolicyValueNet # Tensorflow
 from policy_value_net_keras import PolicyValueNet # Keras
+import time
 
 
 class TrainPipeline():
     def __init__(self, init_model=None):
         # params of the board and the game
-        self.board_width = 6
-        self.board_height = 6
-        self.n_in_row = 4
+        self.board_width = 8
+        self.board_height = 8
+        self.n_in_row = 5
         self.board = Board(width=self.board_width,
                            height=self.board_height,
                            n_in_row=self.n_in_row)
@@ -165,12 +166,21 @@ class TrainPipeline():
     def run(self):
         """run the training pipeline"""
         try:
+            t_selfplay_time = 0.0
+            t_train_time = 0.0
+            step = 0
             for i in range(self.game_batch_num):
+                t1 = time.time()
                 self.collect_selfplay_data(self.play_batch_size)
-                print("batch i:{}, episode_len:{}".format(
-                        i+1, self.episode_len))
+                t_selfplay_time = t_selfplay_time + time.time()-t1
+                print("batch i:{}, episode_len:{}, time:{}s".format(
+                        i+1, self.episode_len, t_selfplay_time/(i+1)))
                 if len(self.data_buffer) > self.batch_size:
+                    t2 = time.time()
                     loss, entropy = self.policy_update()
+                    t_train_time = t_train_time + time.time() - t2
+                    step += 1
+                    print("train :{}, time:{}s".format(step,t_train_time/step))
                 # check the performance of the current model,
                 # and save the model params
                 if (i+1) % self.check_freq == 0:
