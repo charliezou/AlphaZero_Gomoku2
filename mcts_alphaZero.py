@@ -120,6 +120,8 @@ class MCTS(object):
         # (action, probability) tuples p and also a score v in [-1, 1]
         # for the current player.
         action_probs, leaf_value = self._policy(state)
+        
+        #action_probs,leaf_value = , np.random.rand()
         # Check for end of game.
         end, winner = state.game_end()
         if not end:
@@ -151,8 +153,10 @@ class MCTS(object):
                       for act, node in self._root._children.items()]
         acts, visits = zip(*act_visits)
         act_probs = softmax(1.0/temp * np.log(np.array(visits) + 1e-10))
+        
+        value = self._root._Q
 
-        return acts, act_probs
+        return acts, act_probs, value
 
     def update_with_move(self, last_move):
         """Step forward in the tree, keeping everything we already know
@@ -190,7 +194,7 @@ class MCTSPlayer(object):
         # the pi vector returned by MCTS as in the alphaGo Zero paper
         move_probs = np.zeros(board.width*board.height)
         if len(sensible_moves) > 0:
-            acts, probs = self.mcts.get_move_probs(board, temp)
+            acts, probs, value = self.mcts.get_move_probs(board, temp)
             move_probs[list(acts)] = probs
             if self._is_selfplay:
                 # add Dirichlet Noise for exploration (needed for
@@ -216,7 +220,7 @@ class MCTSPlayer(object):
 #                print("AI move: %d,%d\n" % (location[0], location[1]))
 
             if return_prob:
-                return move, move_probs
+                return move, move_probs, value
             else:
                 return move
         else:

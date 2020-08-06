@@ -7,8 +7,9 @@ Tested in Tensorflow 1.4 and 1.5
 """
 
 import numpy as np
-import tensorflow as tf
-
+#import tensorflow as tf
+import tensorflow.compat.v1 as tf
+tf.disable_eager_execution()
 
 class PolicyValueNet():
     def __init__(self, board_width, board_height, model_file=None):

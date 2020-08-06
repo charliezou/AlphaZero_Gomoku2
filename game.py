@@ -82,6 +82,39 @@ class Board(object):
             else self.players[1]
         )
         self.last_move = move
+        
+    def has_a_winner_bak(self):
+        width = self.width
+        height = self.height
+        states = self.states
+        n = self.n_in_row
+        
+        moved = list(set(range(width * height)) - set(self.availables))
+        if len(moved) < self.n_in_row *2-1:
+            return False, -1
+        
+        m = self.last_move
+        h = m // width
+        w = m % width
+        player = states[m]
+
+        if (w in range(width - n + 1) and
+                len(set(states.get(i, -1) for i in range(m, m + n))) == 1):
+            return True, player
+
+        if (h in range(height - n + 1) and
+                len(set(states.get(i, -1) for i in range(m, m + n * width, width))) == 1):
+            return True, player
+
+        if (w in range(width - n + 1) and h in range(height - n + 1) and
+                len(set(states.get(i, -1) for i in range(m, m + n * (width + 1), width + 1))) == 1):
+            return True, player
+
+        if (w in range(n - 1, width) and h in range(height - n + 1) and
+                len(set(states.get(i, -1) for i in range(m, m + n * (width - 1), width - 1))) == 1):
+            return True, player
+        
+        return False, -1
 
     def has_a_winner(self):
         width = self.width
@@ -189,8 +222,8 @@ class Game(object):
                     else:
                         print("Game end. Tie")
                 return winner
-
-    def start_self_play(self, player, is_shown=0, temp=1e-3):
+            
+    def start_self_play_bak(self, player, is_shown=0, temp=1e-3):
         """ start a self-play game using a MCTS player, reuse the search tree,
         and store the self-play data: (state, mcts_probs, z) for training
         """
@@ -198,13 +231,14 @@ class Game(object):
         p1, p2 = self.board.players
         states, mcts_probs, current_players = [], [], []
         while True:
-            move, move_probs = player.get_action(self.board,
+            move, move_probs, _ = player.get_action(self.board,
                                                  temp=temp,
                                                  return_prob=1)
             # store the data
             states.append(self.board.current_state())
             mcts_probs.append(move_probs)
             current_players.append(self.board.current_player)
+            
             # perform a move
             self.board.do_move(move)
             if is_shown:
@@ -216,6 +250,47 @@ class Game(object):
                 if winner != -1:
                     winners_z[np.array(current_players) == winner] = 1.0
                     winners_z[np.array(current_players) != winner] = -1.0
+                # reset MCTS root node
+                player.reset_player()
+                if is_shown:
+                    if winner != -1:
+                        print("Game end. Winner is player:", winner)
+                    else:
+                        print("Game end. Tie")
+                return winner, zip(states, mcts_probs, winners_z)
+
+    def start_self_play(self, player, is_shown=0, temp=1e-3):
+        """ start a self-play game using a MCTS player, reuse the search tree,
+        and store the self-play data: (state, mcts_probs, z) for training
+        """
+        self.board.init_board()
+        p1, p2 = self.board.players
+        states, mcts_probs, current_players, values = [], [], [], []
+        td_step = 8
+        while True:
+            move, move_probs, value = player.get_action(self.board,
+                                                 temp=temp,
+                                                 return_prob=1)
+            # store the data
+            states.append(self.board.current_state())
+            mcts_probs.append(move_probs)
+            current_players.append(self.board.current_player)
+            values.append(value)
+            
+            # perform a move
+            self.board.do_move(move)
+            if is_shown:
+                self.graphic(self.board, p1, p2)
+            end, winner = self.board.game_end()
+            if end:
+                # winner from the perspective of the current player of each state
+                winners_z = np.zeros(len(current_players))
+                for i in range(len(current_players)):
+                    if i+td_step<len(current_players):
+                        winners_z[i] = values[i+td_step]
+                    else:
+                        if winner != -1:
+                            winners_z[i] = 1.0 if current_players[i] == winner else -1.0                                        
                 # reset MCTS root node
                 player.reset_player()
                 if is_shown:
