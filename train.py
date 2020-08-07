@@ -33,15 +33,16 @@ class TrainPipeline():
         self.learn_rate = 2e-3
         self.lr_multiplier = 1.0  # adaptively adjust the learning rate based on KL
         self.temp = 1.0  # the temperature param
-        self.n_playout = 100  # num of simulations for each move
+        self.n_playout = 400  # num of simulations for each move
+		self.n_playout_self_play = 100
         self.c_puct = 5
-        self.buffer_size = 10000
+        self.buffer_size = 2000
         self.batch_size = 512  # mini-batch size for training
         self.data_buffer = deque(maxlen=self.buffer_size)
         self.play_batch_size = 1
         self.epochs = 5  # num of train_steps for each update
         self.kl_targ = 0.02
-        self.check_freq = 50
+        self.check_freq = 100
         self.game_batch_num = 1500
         self.best_win_ratio = 0.0
         # num of simulations used for the pure mcts, which is used as
@@ -58,7 +59,7 @@ class TrainPipeline():
                                                    self.board_height)
         self.mcts_player = MCTSPlayer(self.policy_value_net.policy_value_fn,
                                       c_puct=self.c_puct,
-                                      n_playout=self.n_playout,
+                                      n_playout=self.n_playout_self_play,
                                       is_selfplay=1)
 
     def get_equi_data(self, play_data):
