@@ -34,7 +34,7 @@ class TrainPipeline():
         self.lr_multiplier = 1.0  # adaptively adjust the learning rate based on KL
         self.temp = 1.0  # the temperature param
         self.n_playout = 400  # num of simulations for each move
-		self.n_playout_self_play = 100
+        self.n_playout_self_play = 1000
         self.c_puct = 5
         self.buffer_size = 2000
         self.batch_size = 512  # mini-batch size for training

@@ -231,7 +231,7 @@ class Game(object):
         self.board.init_board()
         p1, p2 = self.board.players
         states, mcts_probs, current_players, values = [], [], [], []
-        td_step = 8
+        td_step = 6
         while True:
             move, move_probs, value = player.get_action(self.board,
                                                  temp=temp,

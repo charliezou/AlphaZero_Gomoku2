@@ -144,7 +144,8 @@ class MCTS(object):
         state: the current game state
         temp: temperature parameter in (0, 1] controls the level of exploration
         """
-        for n in range(self._n_playout):
+        num = int(len(state.availables)*self._n_playout/(state.width*state.height))
+        for n in range(num):
             state_copy = copy.deepcopy(state)
             self._playout(state_copy)
 
