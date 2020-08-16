@@ -45,6 +45,7 @@ class TrainPipeline():
         self.check_freq = 50
         self.game_batch_num = 1500
         self.best_win_ratio = 0.0
+		self.td_step = 2
         # num of simulations used for the pure mcts, which is used as
         # the opponent to evaluate the trained policy
         self.pure_mcts_playout_num = 1000
@@ -93,7 +94,7 @@ class TrainPipeline():
         """collect self-play data for training"""
         for i in range(n_games):
             winner, play_data = self.game.start_self_play(self.mcts_player,
-                                                          temp=self.temp)
+                                                          temp=self.temp, td_step=self.td_step)
             play_data = list(play_data)[:]
             self.episode_len = len(play_data)
             # augment the data
